@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.mhsb.relatorioapi.entity.Usuario;
 
@@ -30,9 +33,9 @@ public class UsuarioService {
 		return getUsuariosListFactory();
 	}
 	
-	public String getRelatorio() throws FileNotFoundException, JRException{
-		return exportarRelatorio();
-	}
+//	public String getRelatorio() throws FileNotFoundException, JRException{
+//		return exportarRelatorio();
+//	}
 	
 	private List<Usuario> getUsuariosListFactory(){
 
@@ -83,12 +86,15 @@ public class UsuarioService {
 		return usuarios;
 	}
 	
-	private String exportarRelatorio() throws FileNotFoundException, JRException {
+	public ResponseEntity<String> exportarRelatorio(HttpServletRequest request, @RequestBody Usuario usuario) throws FileNotFoundException, JRException {
 		
 		//File arquivo = ResourceUtils.getFile("classpath:relatoriousuarios.jrxml");
 		InputStream arquivo = Usuario.class.getResourceAsStream("/relatorioUsuarios.jrxml");
 		JasperReport jasper = JasperCompileManager.compileReport(arquivo);
-		JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(getUsuariosListFactory());
+		
+		List<Usuario> usuarios = new ArrayList<Usuario>();
+		usuarios.add(usuario);
+		JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(usuarios);
 		byte[] btPDF;
 		
 		Map<String, Object> parameters = new HashMap<String, Object>();
@@ -104,7 +110,7 @@ public class UsuarioService {
 
 		String resposta = sb.toString();
 		
-		return resposta;
+		return ResponseEntity.ok(resposta);
 	}
 }
 
